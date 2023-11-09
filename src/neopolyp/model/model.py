@@ -23,7 +23,7 @@ class NeoPolypModel(pl.LightningModule):
         #     F.one_hot(mask.long(), 3).permute(0, 3, 1, 2).float().flatten(0, 1)
         # )
         loss = e_loss  # + d_loss
-        self.log("train_entropy_loss", e_loss)
+        self.log("train_loss", e_loss)
         return loss
 
     def validation_step(self, batch, batch_idx):
@@ -35,7 +35,7 @@ class NeoPolypModel(pl.LightningModule):
         #     F.one_hot(mask.long(), 3).float().flatten(0, 1)
         # )
         loss = e_loss  # + d_loss
-        self.log("eval_entropy_loss", e_loss)
+        self.log("val_loss", e_loss)
         return loss
 
     def configure_optimizers(self):

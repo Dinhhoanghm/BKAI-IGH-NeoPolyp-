@@ -99,9 +99,9 @@ def main():
         os.makedirs(ckpt_path)
 
     ckpt_callback = ModelCheckpoint(
-        monitor="val_acc",
+        monitor="val_loss",
         dirpath=ckpt_path,
-        filename="checkpoints-{epoch:02d}-{val_acc:.5f}",
+        filename="checkpoints-{epoch:02d}-{val_loss:.5f}",
         save_top_k=1,
         mode="max"
     )  # save top 3 epochs with the lowest validation loss
