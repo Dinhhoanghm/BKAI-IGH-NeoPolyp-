@@ -1,6 +1,6 @@
 from pytorch_lightning.callbacks import ModelCheckpoint, LearningRateMonitor
 from pytorch_lightning.loggers import WandbLogger
-from ..data.dataset import NeoPolypDataset
+from ..dataset.dataset import NeoPolypDataset
 from torch.utils.data import DataLoader, random_split
 from ..model.model import NeoPolypModel
 import torch
