@@ -1,0 +1,17 @@
+[project]
+name = "deep-learning-exercise"
+authors = [{name = "datvodinh", email = "vodinhdat03@gmail.com"}]
+version = "1.0.0"
+requires-python = ">=3.9"
+dependencies = [
+    "torch",
+    "torchvision",
+    "torchaudio",
+    "opencv-python",
+    "lightning"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest"
+]
