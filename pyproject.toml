@@ -8,7 +8,9 @@ dependencies = [
     "torchvision",
     "torchaudio",
     "opencv-python",
-    "lightning"
+    "lightning",
+    "torchsummary",
+    "albumentations"
 ]
 
 [project.optional-dependencies]
