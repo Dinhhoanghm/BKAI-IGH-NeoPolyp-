@@ -21,10 +21,15 @@ class NeoPolypModel(pl.LightningModule):
         f_loss = focal_tversky_loss(y_hat, mask)
         d_score = dice_score(y_hat, mask)
         loss = e_loss + f_loss
-        self.log("train_loss", loss, on_step=False, on_epoch=True)
-        self.log("train_entropy_loss", e_loss, on_step=False, on_epoch=True)
-        self.log("train_ft_loss", f_loss, on_step=False, on_epoch=True)
-        self.log("train_dice_score", d_score, on_step=False, on_epoch=True)
+        self.log_dict(
+            {
+                "train_loss": loss,
+                "train_entropy_loss": e_loss,
+                "train_ft_loss": f_loss,
+                "train_dice_score": d_score
+            },
+            on_step=False, on_epoch=True, sync_dist=True
+        )
         return loss
 
     def validation_step(self, batch, batch_idx):
@@ -34,10 +39,15 @@ class NeoPolypModel(pl.LightningModule):
         f_loss = focal_tversky_loss(y_hat, mask)
         d_score = dice_score(y_hat, mask)
         loss = (e_loss + f_loss) / 2
-        self.log("val_loss", loss, on_step=False, on_epoch=True)
-        self.log("val_entropy_loss", e_loss, on_step=False, on_epoch=True)
-        self.log("val_ft_loss", f_loss, on_step=False, on_epoch=True)
-        self.log("val_dice_score", d_score, on_step=False, on_epoch=True)
+        self.log_dict(
+            {
+                "val_loss": loss,
+                "val_entropy_loss": e_loss,
+                "val_ft_loss": f_loss,
+                "val_dice_score": d_score
+            },
+            on_step=False, on_epoch=True, sync_dist=True
+        )
         return loss
 
     def configure_optimizers(self):
