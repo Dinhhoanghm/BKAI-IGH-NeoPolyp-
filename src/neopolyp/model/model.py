@@ -20,7 +20,7 @@ class NeoPolypModel(pl.LightningModule):
         e_loss = F.cross_entropy(y_hat, torch.argmax(mask, dim=1))
         f_loss = focal_tversky_loss(y_hat, mask)
         d_score = dice_score(y_hat, mask)
-        loss = e_loss + f_loss
+        loss = (e_loss + f_loss) / 2
         self.log_dict(
             {
                 "train_loss": loss,
@@ -33,7 +33,7 @@ class NeoPolypModel(pl.LightningModule):
         return loss
 
     def validation_step(self, batch, batch_idx):
-        image, mask = batch['image'].float(), batch['mask'].permute(0, 3, 1, 2)
+        image, mask = batch['image'].float(), batch['mask'].permute(0, 3, 1, 2)  / 255.
         y_hat = self(image)
         e_loss = F.cross_entropy(y_hat, torch.argmax(mask, dim=1))
         f_loss = focal_tversky_loss(y_hat, mask)
