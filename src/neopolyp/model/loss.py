@@ -7,15 +7,13 @@ def dice_score(
     target: Tensor,
     smooth: float = 1e-6
 ):
-    # Average of Dice coefficient for all batches, or for a single mask
     inputs = torch.softmax(logits, dim=1)
-
-    # flatten label and prediction tensors
     inputs = inputs.reshape(-1)
     targets = target.reshape(-1)
 
     intersection = (inputs * targets).sum()
-    dice = 2.*(intersection + smooth)/(inputs.sum() + targets.sum() + smooth)
+    union = inputs.sum() + targets.sum()
+    dice = (2.*intersection + smooth)/(union + smooth)
 
     return dice
 
@@ -37,12 +35,10 @@ def focal_tversky_loss(
     gamma: float = 1
 ):
 
-    # flatten label and prediction tensors
     inputs = torch.softmax(logits, dim=1)
     inputs = inputs.reshape(-1)
     targets = targets.reshape(-1)
-
-    # True Positives, False Positives & False Negatives
+    
     TP = (inputs * targets).sum()
     FP = ((1-targets) * inputs).sum()
     FN = (targets * (1-inputs)).sum()

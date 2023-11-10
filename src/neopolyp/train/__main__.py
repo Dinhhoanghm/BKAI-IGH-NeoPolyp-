@@ -113,7 +113,7 @@ def main():
                          callbacks=[ckpt_callback, lr_callback],
                          gradient_clip_val=0.5,
                          max_epochs=args.max_epochs,
-                         enable_progress_bar=True,
+                         enable_progress_bar=False,
                          deterministic=False,
                          log_every_n_steps=1)
 
