@@ -15,7 +15,7 @@ def dice_score(
     targets = target.reshape(-1)
 
     intersection = (inputs * targets).sum()
-    dice = (2.*intersection + smooth)/(inputs.sum() + targets.sum() + smooth)
+    dice = 2.*(intersection + smooth)/(inputs.sum() + targets.sum() + smooth)
 
     return dice
 
