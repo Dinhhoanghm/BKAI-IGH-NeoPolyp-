@@ -38,13 +38,14 @@ def focal_tversky_loss(
 ):
 
     # flatten label and prediction tensors
-    logits = logits.reshape(-1)
+    inputs = torch.softmax(logits, dim=1)
+    inputs = inputs.reshape(-1)
     targets = targets.reshape(-1)
 
     # True Positives, False Positives & False Negatives
-    TP = (logits * targets).sum()
-    FP = ((1-targets) * logits).sum()
-    FN = (targets * (1-logits)).sum()
+    TP = (inputs * targets).sum()
+    FP = ((1-targets) * inputs).sum()
+    FN = (targets * (1-inputs)).sum()
 
     tversky = (TP + smooth) / (TP + alpha*FP + beta*FN + smooth)
     focal_tversky = (1 - tversky)**gamma
