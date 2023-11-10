@@ -60,7 +60,7 @@ def main():
 
     train_dataset, val_dataset = random_split(
         dataset=train_dataset,
-        lengths=(0.9, 0.1),
+        lengths=(0.95, 0.05),
         generator=torch.Generator().manual_seed(args.seed)
     )
 
@@ -99,9 +99,9 @@ def main():
         os.makedirs(ckpt_path)
 
     ckpt_callback = ModelCheckpoint(
-        monitor="val_loss",
+        monitor="val_dice_score",
         dirpath=ckpt_path,
-        filename="checkpoints-{epoch:02d}-{val_loss:.5f}",
+        filename="checkpoints-{epoch:02d}-{val_dice_score:.5f}",
         save_top_k=1,
         mode="max"
     )  # save top 3 epochs with the lowest validation loss
@@ -111,7 +111,7 @@ def main():
     trainer = pl.Trainer(default_root_dir=root_path,
                          logger=logger,
                          callbacks=[ckpt_callback, lr_callback],
-                         gradient_clip_val=0.5,
+                         gradient_clip_val=1.0,
                          max_epochs=args.max_epochs,
                          enable_progress_bar=False,
                          deterministic=False,

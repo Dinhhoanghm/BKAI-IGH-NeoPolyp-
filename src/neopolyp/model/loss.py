@@ -1,13 +1,13 @@
 import torch
 from torch import Tensor
-
+import torch.nn.functional as F
 
 def dice_score(
     logits: Tensor,
     target: Tensor,
     smooth: float = 1e-6
 ):
-    inputs = torch.softmax(logits, dim=1)
+    inputs = F.sigmoid(logits)
     inputs = inputs.reshape(-1)
     targets = target.reshape(-1)
 
@@ -35,7 +35,7 @@ def focal_tversky_loss(
     gamma: float = 1
 ):
 
-    inputs = torch.softmax(logits, dim=1)
+    inputs = F.sigmoid(logits)
     inputs = inputs.reshape(-1)
     targets = targets.reshape(-1)
     
