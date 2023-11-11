@@ -1,52 +1,37 @@
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
-import numpy as np
-
-
-def label_mask(mask):
-
-    A = mask[:, :, 0]  # Red channel
-    B = mask[:, :, 1]  # Green channel
-    C = mask[:, :, 2]  # Blue channel
-
-    max_values = np.maximum(np.maximum(A, B), C)
-
-    result = np.zeros_like(max_values)
-
-    result[max_values == A] = 1
-    result[max_values == B] = 2
-    result[max_values == C] = 0
-
-    return result
+import cv2
+import torch
 
 
 class TrainTransform:
     def __init__(self) -> None:
         self.transform = A.Compose([
-            A.Resize(256, 256),
-            A.HorizontalFlip(p=0.3),
-            A.VerticalFlip(p=0.3),
-            A.Rotate(limit=30, p=0.3),
+            A.Resize(800, 1120, interpolation=cv2.INTER_LINEAR),
+            # A.HorizontalFlip(p=0.3),
+            # A.VerticalFlip(p=0.3),
+            # A.Rotate(limit=30, p=0.3),
+            ToTensorV2(),
         ])
-
-        self.to_tensor = ToTensorV2()
 
     def __call__(self, img, mask):
         data = self.transform(image=img, mask=mask)
+        image = data['image'] / 255.
+        mask = data['mask']
+        mask = torch.where(mask > 0.65, 1.0, 0.0)
+        mask[:, :, 2] = 0.0001
+        mask = torch.argmax(mask, 2).type(torch.int64)
+
         return {
-            'image': self.to_tensor(
-                image=data['image'] / 255.
-            )['image'],
-            'mask': self.to_tensor(
-                image=label_mask(data['mask'])
-            )['image']
+            'image': image,
+            'mask': mask
         }
 
 
 class TestTransform:
     def __init__(self) -> None:
         self.transform = A.Compose([
-            A.Resize(256, 256),
+            A.Resize(800, 1120, interpolation=cv2.INTER_LINEAR),
             ToTensorV2(),
         ])
 
