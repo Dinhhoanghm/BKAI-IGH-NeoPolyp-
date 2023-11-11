@@ -24,9 +24,9 @@ class TrainTransform:
     def __init__(self) -> None:
         self.transform = A.Compose([
             A.Resize(256, 256),
-            # A.HorizontalFlip(p=0.3),
-            # A.VerticalFlip(p=0.3),
-            # A.RandomRotate90(p=0.3),
+            A.HorizontalFlip(p=0.3),
+            A.VerticalFlip(p=0.3),
+            A.Rotate(limit=30, p=0.3),
         ])
 
         self.to_tensor = ToTensorV2()

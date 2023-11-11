@@ -44,3 +44,29 @@ class DiceLoss(nn.Module):
         )
 
         return torch.mean(1. - dice_score), dice_score.mean().detach()
+
+
+class FocalTverskyLoss(nn.Module):
+    def __init__(self, weight=None, size_average=True):
+        super(FocalTverskyLoss, self).__init__()
+
+    def forward(self, inputs, targets, smooth=1, alpha=0.5, beta=0.5, gamma=1):
+
+        # compute softmax over the classes axis
+        input_soft = F.softmax(inputs, dim=1)
+
+        # create the labels one hot tensor
+        target_one_hot = one_hot(targets, num_classes=inputs.shape[1])
+        # flatten label and prediction tensors
+        input_soft = input_soft.view(-1)
+        target_one_hot = target_one_hot.view(-1)
+
+        # True Positives, False Positives & False Negatives
+        TP = (input_soft * target_one_hot).sum()
+        FP = ((1-target_one_hot) * input_soft).sum()
+        FN = (target_one_hot * (1-input_soft)).sum()
+
+        tversky = (TP + smooth) / (TP + alpha*FP + beta*FN + smooth)
+        focal_tversky = (1 - tversky)**gamma
+
+        return focal_tversky
