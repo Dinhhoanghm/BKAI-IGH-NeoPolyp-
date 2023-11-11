@@ -60,7 +60,7 @@ def main():
 
     train_dataset, val_dataset = random_split(
         dataset=train_dataset,
-        lengths=(0.95, 0.05),
+        lengths=(0.9, 0.1),
         generator=torch.Generator().manual_seed(args.seed)
     )
 
