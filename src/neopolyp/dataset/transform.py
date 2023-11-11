@@ -7,7 +7,7 @@ import torch
 class TrainTransform:
     def __init__(self) -> None:
         self.transform = A.Compose([
-            A.Resize(800, 1120, interpolation=cv2.INTER_LINEAR),
+            A.Resize(256,256, interpolation=cv2.INTER_LINEAR),
             # A.HorizontalFlip(p=0.3),
             # A.VerticalFlip(p=0.3),
             # A.Rotate(limit=30, p=0.3),
@@ -31,7 +31,7 @@ class TrainTransform:
 class TestTransform:
     def __init__(self) -> None:
         self.transform = A.Compose([
-            A.Resize(800, 1120, interpolation=cv2.INTER_LINEAR),
+            A.Resize(256,256, interpolation=cv2.INTER_LINEAR),
             ToTensorV2(),
         ])
 
