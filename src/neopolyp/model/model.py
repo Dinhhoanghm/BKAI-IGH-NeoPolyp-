@@ -15,12 +15,11 @@ class NeoPolypModel(pl.LightningModule):
         return self.model(x)
 
     def training_step(self, batch, batch_idx):
-        image, mask = batch['image'].float(), batch['mask'].squeeze(1).long()
-        one_hot_mask = F.one_hot(mask, num_classes=3).permute(0, 3, 1, 2)
+        image, mask = batch['image'].float(), batch['mask']
         logits = self(image)
         e_loss = F.cross_entropy(logits, mask)
-        # f_loss = focal_tversky_loss(logits, one_hot_mask)
-        d_score = dice_score(logits, one_hot_mask)
+        # f_loss = focal_tversky_loss(logits, mask)
+        d_score = dice_score(logits, mask)
         # loss = (e_loss + f_loss) / 2
         self.log_dict(
             {
@@ -34,12 +33,11 @@ class NeoPolypModel(pl.LightningModule):
         return e_loss
 
     def validation_step(self, batch, batch_idx):
-        image, mask = batch['image'].float(), batch['mask'].squeeze(1).long()
-        one_hot_mask = F.one_hot(mask, num_classes=3).permute(0, 3, 1, 2)
+        image, mask = batch['image'].float(), batch['mask']
         logits = self(image)
         e_loss = F.cross_entropy(logits, mask)
-        # f_loss = focal_tversky_loss(logits, one_hot_mask)
-        d_score = dice_score(logits, one_hot_mask)
+        # f_loss = focal_tversky_loss(logits, mask)
+        d_score = dice_score(logits, mask)
         # loss = (e_loss + f_loss) / 2
         self.log_dict(
             {

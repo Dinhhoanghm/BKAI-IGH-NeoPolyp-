@@ -54,7 +54,7 @@ class UNet(nn.Module):
         self.up2 = UpSample(512, 256)
         self.up3 = UpSample(256, 128)
         self.up4 = UpSample(128, 64)
-        self.conv_out = _make_layers(64, in_channels)
+        self.conv_out = nn.Conv2d(64, 3, kernel_size=1)
 
     def forward(self, x):
         x1 = self.conv_in(x)

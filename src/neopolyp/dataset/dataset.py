@@ -35,7 +35,7 @@ class NeoPolypDataset(Dataset):
             img = cv2.imread(self.train_path[index])
             img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
             gt = cv2.imread(self.train_gt_path[index])
-            gt = cv2.cvtColor(gt, cv2.COLOR_BGR2HSV)
+            gt = cv2.cvtColor(gt, cv2.COLOR_BGR2RGB)
             return self.train_transform(img, gt)
         else:
             img = cv2.imread(self.test_path[index])

@@ -1,29 +1,27 @@
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
 import numpy as np
-import cv2 as cv
 
 
-def _transform_mask(image):
-    # lower boundary RED color range values; Hue (0 - 10)
-    lower1 = np.array([0, 100, 20])
-    upper1 = np.array([10, 255, 255])
-    # upper boundary RED color range values; Hue (160 - 180)
-    lower2 = np.array([160, 100, 20])
-    upper2 = np.array([179, 255, 255])
-    lower_mask = cv.inRange(image, lower1, upper1)
-    upper_mask = cv.inRange(image, lower2, upper2)
+def label_mask(mask):
 
-    red_mask = lower_mask + upper_mask
-    red_mask[red_mask != 0] = 2
+    A = mask[:, :, 0]  # Red channel
+    B = mask[:, :, 1]  # Green channel
+    C = mask[:, :, 2]  # Blue channel
 
-    # boundary GREEN color range values; Hue (36 - 70)
-    green_mask = cv.inRange(image, (36, 25, 25), (70, 255, 255))
-    green_mask[green_mask != 0] = 1
+    max_values = np.maximum(np.maximum(A, B), C)
 
-    full_mask = cv.bitwise_or(red_mask, green_mask)
-    full_mask = full_mask.astype(np.uint8)
-    return full_mask
+    result = np.zeros_like(max_values)
+
+    result[max_values == A] = 1
+    result[max_values == B] = 2
+    result[max_values == C] = 0
+
+    one_hot = np.zeros((256, 256, 3), dtype=np.float32)
+    for i in range(1, 3):
+        one_hot[:, :, i] = result == i
+
+    return one_hot
 
 
 class TrainTransform:
@@ -44,7 +42,7 @@ class TrainTransform:
                 image=data['image'] / 255.
             )['image'],
             'mask': self.to_tensor(
-                image=_transform_mask(data['mask'])
+                image=label_mask(data['mask'])
             )['image']
         }
 
