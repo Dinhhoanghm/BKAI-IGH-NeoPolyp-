@@ -1,57 +1,43 @@
 import torch
-from torch import Tensor
+import torch.nn as nn
 import torch.nn.functional as F
 
 
-def dice_score(
-    logits: Tensor,
-    target: Tensor,
-    smooth: float = 1e-6
-):
-    inputs = F.softmax(logits, dim=1)
-    inputs = inputs.reshape(-1)
-    targets = target.reshape(-1)
-
-    intersection = (inputs * targets).sum()
-    union = inputs.sum() + targets.sum()
-    dice = (2.*intersection + smooth)/(union + smooth)
-
-    return dice
+def one_hot(labels: torch.Tensor,
+            num_classes: int,
+            eps: float = 1e-6
+            ) -> torch.Tensor:
+    r"""Converts an integer label 2D tensor to a one-hot 3D tensor.
+        Label: (N, H, W) -> Onehot: (N, C, H, W)
+    """
+    batch_size, height, width = labels.shape
+    one_hot = torch.zeros(batch_size, num_classes, height, width).to(labels.device)
+    return one_hot.scatter_(1, labels.unsqueeze(1), 1.0) + eps
 
 
-def dice_loss(
-    logits: Tensor,
-    target: Tensor,
-    epsilon: float = 1e-6
-):
-    return 1 - dice_score(logits, target, epsilon)
+class DiceLoss(nn.Module):
+    def __init__(self, weights=torch.Tensor([[0.33, 0.34, 0.33]]).cuda()) -> None:
+        super(DiceLoss, self).__init__()
+        self.eps: float = 1e-6
+        self.weights: torch.Tensor = weights
 
+    def forward(
+            self,
+            inputs: torch.Tensor,
+            targets: torch.Tensor) -> torch.Tensor:
+        # compute softmax over the classes axis
+        input_soft = F.softmax(inputs, dim=1)
 
-def focal_tversky_loss(
-    logits: Tensor,
-    targets: Tensor,
-    smooth: float = 1e-6,
-    alpha: float = 0.5,
-    beta: float = 0.5,
-    gamma: float = 1
-):
+        # create the labels one hot tensor
+        target_one_hot = one_hot(targets, num_classes=inputs.shape[1])
 
-    inputs = F.sigmoid(logits)
-    inputs = inputs.reshape(-1)
-    targets = targets.reshape(-1)
+        # compute the actual dice score
+        dims = (2, 3)
+        intersection = torch.sum(input_soft * target_one_hot, dims)
+        cardinality = torch.sum(input_soft + target_one_hot, dims)
 
-    TP = (inputs * targets).sum()
-    FP = ((1-targets) * inputs).sum()
-    FN = (targets * (1-inputs)).sum()
+        dice_score = 2. * intersection / (cardinality + self.eps)
 
-    tversky = (TP + smooth) / (TP + alpha*FP + beta*FN + smooth)
-    focal_tversky = (1 - tversky)**gamma
+        dice_score = torch.sum(dice_score * self.weights, dim=1)
 
-    return focal_tversky
-
-
-if __name__ == "__main__":
-    a = torch.rand(4, 3, 8, 8)
-    b = torch.randint(0, 2, (4, 3, 8, 8))
-    print(dice_loss(a, b))
-    print(focal_tversky_loss(a, b))
+        return torch.mean(1. - dice_score), dice_score.mean().detach()

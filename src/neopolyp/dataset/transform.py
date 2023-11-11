@@ -17,11 +17,7 @@ def label_mask(mask):
     result[max_values == B] = 2
     result[max_values == C] = 0
 
-    one_hot = np.zeros((256, 256, 3), dtype=np.float32)
-    for i in range(1, 3):
-        one_hot[:, :, i] = result == i
-
-    return one_hot
+    return result
 
 
 class TrainTransform:

@@ -1,8 +1,7 @@
 import torch
-import torch.nn.functional as F
 import pytorch_lightning as pl
 from .unet import UNet
-from .loss import dice_score, focal_tversky_loss
+from .loss import DiceLoss
 
 
 class NeoPolypModel(pl.LightningModule):
@@ -10,45 +9,37 @@ class NeoPolypModel(pl.LightningModule):
         super().__init__()
         self.model = UNet(in_channels=3)
         self.lr = lr
+        # self.criterion = nn.CrossEntropyLoss()
+        self.criterion = DiceLoss()
 
     def forward(self, x):
         return self.model(x)
 
     def training_step(self, batch, batch_idx):
-        image, mask = batch['image'].float(), batch['mask']
+        image, mask = batch['image'].float(), batch['mask'].squeeze(1).long()
         logits = self(image)
-        e_loss = F.cross_entropy(logits, torch.argmax(mask,dim=1))
-        # f_loss = focal_tversky_loss(logits, mask)
-        d_score = dice_score(logits, mask)
-        # loss = (e_loss + f_loss) / 2
+        d_loss, d_score = self.criterion(logits, mask)
         self.log_dict(
             {
-                "train_loss": e_loss,
-                # "train_entropy_loss": e_loss,
-                # "train_ft_loss": f_loss,
+                "train_loss": d_loss,
                 "train_dice_score": d_score
             },
-            on_step=False, on_epoch=True, sync_dist=True
+            on_step=False, on_epoch=True, sync_dist=True,prog_bar=True
         )
-        return e_loss
+        return d_loss
 
     def validation_step(self, batch, batch_idx):
-        image, mask = batch['image'].float(), batch['mask']
+        image, mask = batch['image'].float(), batch['mask'].squeeze(1).long()
         logits = self(image)
-        e_loss = F.cross_entropy(logits, torch.argmax(mask,dim=1))
-        # f_loss = focal_tversky_loss(logits, mask)
-        d_score = dice_score(logits, mask)
-        # loss = (e_loss + f_loss) / 2
+        d_loss, d_score = self.criterion(logits, mask)
         self.log_dict(
             {
-                "val_loss": e_loss,
-                # "val_entropy_loss": e_loss,
-                # "val_ft_loss": f_loss,
+                "val_loss": d_loss,
                 "val_dice_score": d_score
             },
-            on_step=False, on_epoch=True, sync_dist=True
+            on_step=False, on_epoch=True, sync_dist=True,prog_bar=True
         )
-        return e_loss
+        return d_loss
 
     def configure_optimizers(self):
         optimizer = torch.optim.AdamW(self.parameters(), lr=self.lr)

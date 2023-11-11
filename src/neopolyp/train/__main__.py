@@ -113,8 +113,8 @@ def main():
                          callbacks=[ckpt_callback, lr_callback],
                          gradient_clip_val=1.0,
                          max_epochs=args.max_epochs,
-                         enable_progress_bar=False,
-                         deterministic=False,
+                         enable_progress_bar=True,
+                         deterministic=True,
                          log_every_n_steps=1)
 
     # FIT MODEL
