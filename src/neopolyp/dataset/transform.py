@@ -24,9 +24,9 @@ class TrainTransform:
     def __init__(self) -> None:
         self.transform = A.Compose([
             A.Resize(256, 256),
-            A.HorizontalFlip(p=0.3),
-            A.VerticalFlip(p=0.3),
-            A.RandomRotate90(p=0.3),
+            # A.HorizontalFlip(p=0.3),
+            # A.VerticalFlip(p=0.3),
+            # A.RandomRotate90(p=0.3),
         ])
 
         self.to_tensor = ToTensorV2()
@@ -47,9 +47,8 @@ class TestTransform:
     def __init__(self) -> None:
         self.transform = A.Compose([
             A.Resize(256, 256),
-            A.Normalize(mean=(0, 0, 0), std=(1, 1, 1)),
             ToTensorV2(),
         ])
 
     def __call__(self, img):
-        return self.transform(image=img)
+        return self.transform(image=img)['image'] / 255.
