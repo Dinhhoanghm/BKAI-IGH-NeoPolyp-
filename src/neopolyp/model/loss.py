@@ -16,7 +16,7 @@ def one_hot(labels: torch.Tensor,
 
 
 class DiceLoss(nn.Module):
-    def __init__(self, weights=torch.Tensor([[0.33, 0.34, 0.33]]).cuda()) -> None:
+    def __init__(self, weights=torch.Tensor([[0.33, 0.34, 0.33]])) -> None:
         super(DiceLoss, self).__init__()
         self.eps: float = 1e-6
         self.weights: torch.Tensor = weights
@@ -38,6 +38,9 @@ class DiceLoss(nn.Module):
 
         dice_score = 2. * intersection / (cardinality + self.eps)
 
-        dice_score = torch.sum(dice_score * self.weights, dim=1)
+        dice_score = torch.sum(
+            dice_score * self.weights.to(dice_score.device),
+            dim=1
+        )
 
         return torch.mean(1. - dice_score), dice_score.mean().detach()
