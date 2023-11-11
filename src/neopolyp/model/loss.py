@@ -16,7 +16,7 @@ def one_hot(labels: torch.Tensor,
 
 
 class DiceLoss(nn.Module):
-    def __init__(self, weights=torch.Tensor([[0.33, 0.34, 0.33]])) -> None:
+    def __init__(self, weights=torch.Tensor([[0.4, 0.55, 0.05]])) -> None:
         super(DiceLoss, self).__init__()
         self.eps: float = 1e-6
         self.weights: torch.Tensor = weights
