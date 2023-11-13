@@ -1,18 +1,18 @@
 import torch
-import torch.nn as nn
 import pytorch_lightning as pl
 from .unet import UNet
-from .loss import dice_score, FocalTverskyLoss, DiceLoss
+from .loss import dice_score, ComboLoss
 
 
 class NeoPolypModel(pl.LightningModule):
-    def __init__(self, lr: float = 1e-4):
+    def __init__(self, lr: float = 1e-4, weight: bool = False):
         super().__init__()
         self.model = UNet(in_channels=3)
         self.lr = lr
-        self.ce_loss = nn.CrossEntropyLoss()
-        self.d_loss = DiceLoss()
-        self.ft_loss = FocalTverskyLoss()
+        if weight:
+            self.criterion = ComboLoss(weight=torch.Tensor([[0.4, 0.55, 0.05]]))
+        else:
+            self.criterion = ComboLoss()
 
     def forward(self, x):
         return self.model(x)
@@ -20,14 +20,8 @@ class NeoPolypModel(pl.LightningModule):
     def _forward(self, batch, batch_idx, name="train"):
         image, mask = batch['image'].float(), batch['mask'].squeeze(1).long()
         logits = self(image)
-        ce_loss = self.ce_loss(logits, mask)
-        # ft_loss = self.ft_loss(logits, mask)
-        # d_loss = self.d_loss(logits, mask)
-        with torch.no_grad():
-            d_score = dice_score(logits, mask)
-        # loss = (ce_loss + d_loss) / 2
-        # loss = d_loss
-        loss = ce_loss
+        loss = self.criterion(logits, mask)
+        d_score = dice_score(logits, mask)
         self.log_dict(
             {
                 f"{name}_loss": loss,

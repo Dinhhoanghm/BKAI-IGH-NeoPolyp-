@@ -89,3 +89,27 @@ class FocalTverskyLoss(nn.Module):
         focal_tversky = (1 - tversky)**gamma
 
         return focal_tversky
+
+
+class ComboLoss(nn.Module):
+    def __init__(self, weight=None, size_average=True):
+        super(ComboLoss, self).__init__()
+
+    def forward(self, inputs, targets, smooth=1, alpha=0.5, beta=0.5):
+
+        inputs = F.softmax(inputs, dim=1)
+        targets = one_hot(targets, num_classes=inputs.shape[1])
+        # flatten label and prediction tensors
+        inputs = inputs.view(-1)
+        targets = targets.view(-1)
+
+        # True Positives, False Positives & False Negatives
+        intersection = (inputs * targets).sum()
+        dice = (2. * intersection + smooth) / (inputs.sum() + targets.sum() + smooth)
+
+        inputs = torch.clamp(inputs, torch.e, 1.0 - torch.e)
+        out = - (alpha * ((targets * torch.log(inputs)) + ((1 - alpha) * (1.0 - targets) * torch.log(1.0 - inputs))))
+        weighted_ce = out.mean(-1)
+        combo = (beta * weighted_ce) - ((1 - beta) * dice)
+
+        return combo
