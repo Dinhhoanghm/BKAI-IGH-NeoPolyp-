@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import pytorch_lightning as pl
 from .unet import UNet
-from .loss import DiceLoss, FocalTverskyLoss
+from .loss import dice_score, FocalTverskyLoss
 
 
 class NeoPolypModel(pl.LightningModule):
@@ -12,7 +12,6 @@ class NeoPolypModel(pl.LightningModule):
         self.lr = lr
         self.ce_loss = nn.CrossEntropyLoss()
         self.ft_loss = FocalTverskyLoss()
-        self.d_loss = DiceLoss()
 
     def forward(self, x):
         return self.model(x)
@@ -23,7 +22,7 @@ class NeoPolypModel(pl.LightningModule):
         ce_loss = self.ce_loss(logits, mask)
         ft_loss = self.ft_loss(logits, mask)
         with torch.no_grad():
-            d_loss, d_score = self.d_loss(logits, mask)
+            d_score = dice_score(logits, mask)
         loss = ce_loss + ft_loss
         self.log_dict(
             {

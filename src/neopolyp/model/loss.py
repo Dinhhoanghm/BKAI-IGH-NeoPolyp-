@@ -15,34 +15,24 @@ def one_hot(labels: torch.Tensor,
     return one_hot.scatter_(1, labels.unsqueeze(1), 1.0) + eps
 
 
-class DiceLoss(nn.Module):
-    def __init__(self, weights=torch.Tensor([[0.4, 0.55, 0.05]])) -> None:
-        super(DiceLoss, self).__init__()
-        self.eps: float = 1e-6
-        self.weights: torch.Tensor = weights
+@torch.no_grad()
+def dice_score(
+    inputs: torch.Tensor,
+    targets: torch.Tensor
+) -> torch.Tensor:
+    # compute softmax over the classes axis
+    input_one_hot = one_hot(inputs.argmax(dim=1), num_classes=inputs.shape[1])
 
-    def forward(
-            self,
-            inputs: torch.Tensor,
-            targets: torch.Tensor) -> torch.Tensor:
-        # compute softmax over the classes axis
-        input_soft = one_hot(inputs.argmax(dim=1), num_classes=inputs.shape[1])
+    # create the labels one hot tensor
+    target_one_hot = one_hot(targets, num_classes=inputs.shape[1])
 
-        # create the labels one hot tensor
-        target_one_hot = one_hot(targets, num_classes=inputs.shape[1])
+    # compute the actual dice score
+    dims = (2, 3)
+    intersection = torch.sum(input_one_hot * target_one_hot, dims)
+    cardinality = torch.sum(input_one_hot + target_one_hot, dims)
 
-        # compute the actual dice score
-        dims = (2, 3)
-        intersection = torch.sum(input_soft * target_one_hot, dims)
-        cardinality = torch.sum(input_soft + target_one_hot, dims)
-
-        dice_score = 2. * intersection / (cardinality + self.eps)
-
-        dice_score = torch.sum(
-            dice_score * self.weights.to(dice_score.device),
-            dim=1
-        )
-        return torch.mean(1. - dice_score), dice_score.mean().detach()
+    dice_score = 2. * intersection / (cardinality + 1e-6)
+    return dice_score.mean()
 
 
 class FocalTverskyLoss(nn.Module):
