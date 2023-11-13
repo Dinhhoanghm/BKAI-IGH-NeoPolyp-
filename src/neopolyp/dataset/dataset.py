@@ -39,10 +39,8 @@ class NeoPolypDataset(Dataset):
             return self.train_transform(img, gt)
         else:
             img = cv2.imread(self.test_path[index])
+            H, W, _ = img.shape
             img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
             img = self.test_transform(img)
-            return img
-
-
-def collate_fn(batch):
-    pass
+            file_id = self.test_path[index].split('/')[-1].split('.')[0]
+            return img, file_id, H, W

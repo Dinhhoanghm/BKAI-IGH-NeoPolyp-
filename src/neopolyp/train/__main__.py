@@ -64,8 +64,6 @@ def main():
         generator=torch.Generator().manual_seed(args.seed)
     )
 
-    test_dataset = NeoPolypDataset("test", args.data_path)
-
     train_loader = DataLoader(
         dataset=train_dataset,
         batch_size=args.batch_size,
@@ -75,13 +73,6 @@ def main():
 
     val_loader = DataLoader(
         dataset=val_dataset,
-        batch_size=args.batch_size,
-        num_workers=0,
-        shuffle=False
-    )
-
-    test_loader = DataLoader(
-        dataset=test_dataset,
         batch_size=args.batch_size,
         num_workers=0,
         shuffle=False
@@ -101,10 +92,10 @@ def main():
     ckpt_callback = ModelCheckpoint(
         monitor="val_dice_score",
         dirpath=ckpt_path,
-        filename="checkpoints-{epoch:02d}-{val_dice_score:.5f}",
+        filename="model",
         save_top_k=1,
         mode="max"
-    )  # save top 3 epochs with the lowest validation loss
+    )  # save top 2 epochs with the highest val_dice_score
     lr_callback = LearningRateMonitor("step")
 
     # TRAINER
@@ -121,9 +112,6 @@ def main():
     trainer.fit(model=model,
                 train_dataloaders=train_loader,
                 val_dataloaders=val_loader)
-
-    # TEST MODEL
-    trainer.test(dataloaders=test_loader)
 
 
 if __name__ == '__main__':
