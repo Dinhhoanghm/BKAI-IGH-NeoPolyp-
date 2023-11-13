@@ -14,6 +14,33 @@ def _make_layers(in_channels: int, out_channels: int):
     )
 
 
+class Attention(nn.Module):
+    def __init__(self, F_g, F_l, F_int):
+        super(Attention, self).__init__()
+        self.W_g = nn.Sequential(
+            nn.Conv2d(F_g, F_int, 1, 1, 0, bias=True),
+            nn.BatchNorm2d(F_int)
+        )
+        self.W_x = nn.Sequential(
+            nn.Conv2d(F_l, F_int, 1, 1, 0, bias=True),
+            nn.BatchNorm2d(F_int)
+        )
+        self.psi = nn.Sequential(
+            nn.Conv2d(F_int, 1, 1, 1, 0, bias=True),
+            nn.BatchNorm2d(1),
+            nn.Sigmoid()
+        )
+        self.relu = nn.ReLU(inplace=True)
+
+    def forward(self, g, x):
+        g1 = self.W_g(g)
+        x1 = self.W_x(x)
+        psi = self.relu(g1+x1)
+        psi = self.psi(psi)
+
+        return x*psi
+
+
 class DownSample(nn.Module):
     def __init__(self, in_channels, out_channels):
         super().__init__()
@@ -27,13 +54,20 @@ class DownSample(nn.Module):
 
 
 class UpSample(nn.Module):
-    def __init__(self, in_channels, out_channels):
+    def __init__(self, in_channels, out_channels, attention=False):
         super().__init__()
-        self.convT = nn.ConvTranspose2d(in_channels, out_channels, kernel_size=2, stride=2)
+        self.attention = attention
+        if attention:
+            self.attn = Attention(in_channels, in_channels, out_channels)
+        else:
+            self.convT = nn.ConvTranspose2d(in_channels, out_channels, kernel_size=2, stride=2)
         self.conv = _make_layers(in_channels, out_channels)
 
     def forward(self, x1, x2):
-        x1 = self.convT(x1)
+        if self.attention:
+            x2 = self.attn(x1, x2)
+        else:
+            x1 = self.convT(x1)
         out = torch.cat([x2, x1], dim=1)
         out = self.conv(out)
         return out
@@ -42,18 +76,20 @@ class UpSample(nn.Module):
 class UNet(nn.Module):
     def __init__(
         self,
-        in_channels: int
+        in_channels: int,
+        attention: bool = False
     ):
         super().__init__()
+        self.attention = attention
         self.conv_in = _make_layers(in_channels, 64)
         self.down1 = DownSample(64, 128)
         self.down2 = DownSample(128, 256)
         self.down3 = DownSample(256, 512)
         self.down4 = DownSample(512, 1024)
-        self.up1 = UpSample(1024, 512)
-        self.up2 = UpSample(512, 256)
-        self.up3 = UpSample(256, 128)
-        self.up4 = UpSample(128, 64)
+        self.up1 = UpSample(1024, 512, attention=attention)
+        self.up2 = UpSample(512, 256, attention=attention)
+        self.up3 = UpSample(256, 128, attention=attention)
+        self.up4 = UpSample(128, 64, attention=attention)
         self.conv_out = nn.Conv2d(64, 3, kernel_size=1)
 
     def forward(self, x):

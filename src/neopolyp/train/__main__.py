@@ -31,9 +31,8 @@ def main():
         '--num_workers', '-nw', type=int, default=2,
         help='number of workers')
     parser.add_argument(
-        '--weight', '-wt', default=False, action='store_true',
-        help='use weight or not'
-    )
+        '--attention', '-a', default=False, action='store_true',
+        help='use attention or not')
     parser.add_argument(
         '--seed', '-s', type=int, default=42,
         help='seed')
@@ -83,7 +82,7 @@ def main():
     )
 
     # MODEL
-    model = NeoPolypModel(lr=args.lr, weight=args.weight)
+    model = NeoPolypModel(lr=args.lr, attention=args.attention)
 
     # CALLBACK
     root_path = os.path.join(os.getcwd(), "checkpoints")
