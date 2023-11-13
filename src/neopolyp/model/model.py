@@ -37,5 +37,19 @@ class NeoPolypModel(pl.LightningModule):
         return self._forward(batch, batch_idx, "val")
 
     def configure_optimizers(self):
-        optimizer = torch.optim.AdamW(self.parameters(), lr=self.lr)
-        return optimizer
+        optimizer = torch.optim.AdamW(
+            params=self.parameters(),
+            lr=self.lr,
+            betas=(0.9, 0.999)
+        )
+        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+            optimizer=optimizer,
+            patience=3,
+            verbose=True,
+            factor=0.5
+        )
+        return {
+            'optimizer': optimizer,
+            'lr_scheduler': scheduler,
+            'monitor': 'val_loss'
+        }
