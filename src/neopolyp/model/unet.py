@@ -34,7 +34,7 @@ class UpSample(nn.Module):
 
     def forward(self, x1, x2):
         x1 = self.convT(x1)
-        out = torch.cat([x1, x2], dim=1)
+        out = torch.cat([x2, x1], dim=1)
         out = self.conv(out)
         return out
 
