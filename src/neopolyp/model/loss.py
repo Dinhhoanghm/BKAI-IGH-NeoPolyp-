@@ -26,7 +26,7 @@ class DiceLoss(nn.Module):
             inputs: torch.Tensor,
             targets: torch.Tensor) -> torch.Tensor:
         # compute softmax over the classes axis
-        input_soft = F.softmax(inputs, dim=1)
+        input_soft = one_hot(inputs.argmax(dim=1), num_classes=inputs.shape[1])
 
         # create the labels one hot tensor
         target_one_hot = one_hot(targets, num_classes=inputs.shape[1])
@@ -42,7 +42,6 @@ class DiceLoss(nn.Module):
             dice_score * self.weights.to(dice_score.device),
             dim=1
         )
-
         return torch.mean(1. - dice_score), dice_score.mean().detach()
 
 
