@@ -161,3 +161,5 @@ cython_debug/
 *.zip
 data
 checkpoints
+*.ipynb
+test.ipynb
