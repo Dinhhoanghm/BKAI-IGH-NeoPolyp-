@@ -163,3 +163,5 @@ data
 checkpoints
 *.ipynb
 test.ipynb
+predict
+output.csv

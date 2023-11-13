@@ -13,6 +13,8 @@ import cv2
 parser = argparse.ArgumentParser(description='NeoPolyp Inference')
 parser.add_argument('--model', type=str, default='model.pth',
                     help='model path')
+parser.add_argument('--data_path', type=str, default='data',
+                    help='data path')
 parser.add_argument('--batch_size', type=int, default=32,
                     help='batch size')
 parser.add_argument('--num_workers', type=int, default=0,
@@ -33,12 +35,12 @@ def main():
         shuffle=False
     )
     if not os.path.isdir(args.save_path):
-        os.mkdir(args.sav)
+        os.mkdir(args.save_path)
     for _, (img, file_id, H, W) in enumerate(test_dataloader):
         with torch.no_grad():
-            predicted_mask = model(img)
+            predicted_mask = model(img.cuda())
         for i in range(args.batch_size):
-            filename = file_id + ".png"
+            filename = file_id[i] + ".png"
             one_hot = F.one_hot(torch.argmax(predicted_mask[i], 0)).permute(2, 0, 1).float()
             mask2img = Resize((H[i].item(), W[i].item()), interpolation=InterpolationMode.NEAREST)(
                 ToPILImage()(one_hot))

@@ -14,7 +14,11 @@ class TrainTransform:
         ])
 
     def __call__(self, img, mask):
-        return self.transform(image=img, mask=mask)
+        data = self.transform(image=img, mask=mask)
+        return {
+            'image': data['image'] / 255.,
+            'mask': data['mask']
+        }
 
 
 class TestTransform:
