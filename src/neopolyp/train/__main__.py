@@ -1,4 +1,5 @@
 from pytorch_lightning.callbacks import ModelCheckpoint, LearningRateMonitor
+from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 from pytorch_lightning.loggers import WandbLogger
 from ..dataset.dataset import NeoPolypDataset
 from torch.utils.data import DataLoader, random_split
@@ -101,10 +102,19 @@ def main():
     )  # save top 2 epochs with the highest val_dice_score
     lr_callback = LearningRateMonitor("step")
 
+    early_stop_callback = EarlyStopping(
+        monitor="val_loss",
+        patience=5,
+        verbose=True,
+        mode="min"
+    )
+
     # TRAINER
     trainer = pl.Trainer(default_root_dir=root_path,
                          logger=logger,
-                         callbacks=[ckpt_callback, lr_callback],
+                         callbacks=[
+                             ckpt_callback, lr_callback, early_stop_callback
+                         ],
                          gradient_clip_val=1.0,
                          max_epochs=args.max_epochs,
                          enable_progress_bar=True,
