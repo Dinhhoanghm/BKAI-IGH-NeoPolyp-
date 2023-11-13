@@ -8,8 +8,8 @@ class TrainTransform:
     def __init__(self) -> None:
         self.transform = A.Compose([
             A.Resize(240, 320, interpolation=cv2.INTER_LINEAR),
-            A.HorizontalFlip(p=0.3),
-            A.VerticalFlip(p=0.3),
+            A.HorizontalFlip(p=0.1),
+            A.VerticalFlip(p=0.1),
             # A.Rotate(limit=30, p=0.3),
             ToTensorV2(),
         ])
