@@ -35,6 +35,36 @@ def dice_score(
     return dice_score.mean()
 
 
+class DiceLoss(nn.Module):
+    def __init__(self, weights=torch.Tensor([[0.4, 0.55, 0.05]])) -> None:
+        super(DiceLoss, self).__init__()
+        self.eps: float = 1e-6
+        self.weights: torch.Tensor = weights
+
+    def forward(
+            self,
+            inputs: torch.Tensor,
+            targets: torch.Tensor) -> torch.Tensor:
+        # compute softmax over the classes axis
+        input_soft = F.softmax(inputs, dim=1)
+
+        # create the labels one hot tensor
+        target_one_hot = one_hot(targets, num_classes=inputs.shape[1])
+
+        # compute the actual dice score
+        dims = (2, 3)
+        intersection = torch.sum(input_soft * target_one_hot, dims)
+        cardinality = torch.sum(input_soft + target_one_hot, dims)
+
+        dice_score = 2. * intersection / (cardinality + self.eps)
+
+        dice_score = torch.sum(
+            dice_score * self.weights.to(dice_score.device),
+            dim=1
+        )
+        return torch.mean(1. - dice_score)
+
+
 class FocalTverskyLoss(nn.Module):
     def __init__(self, weight=None, size_average=True):
         super(FocalTverskyLoss, self).__init__()
