@@ -17,7 +17,7 @@ class TrainTransform:
     def __call__(self, img, mask):
         data = self.transform(image=img, mask=mask)
         image = data['image'] / 255.
-        mask = data['mask']
+        mask = data['mask'] / 255.
         mask = torch.where(mask > 0.65, 1.0, 0.0)
         mask[:, :, 2] = 0.0001
         mask = torch.argmax(mask, 2).type(torch.int64)
