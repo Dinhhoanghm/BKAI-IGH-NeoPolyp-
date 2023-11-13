@@ -20,10 +20,10 @@ def main():
         '--data_path', '-d', type=str, default='data',
         help='model name')
     parser.add_argument(
-        '--max_epochs', '-me', type=int, default=20,
+        '--max_epochs', '-me', type=int, default=200,
                         help='max epoch')
     parser.add_argument(
-        '--batch_size', '-bs', type=int, default=64,
+        '--batch_size', '-bs', type=int, default=25,
                         help='batch size')
     parser.add_argument(
         '--lr', '-l', type=float, default=1e-4,
@@ -34,6 +34,9 @@ def main():
     parser.add_argument(
         '--attention', '-a', default=False, action='store_true',
         help='use attention or not')
+    parser.add_argument(
+        '--accumulate_grad_batches', '-agb', type=int, default=1,
+        help='accumulate_grad_batches')
     parser.add_argument(
         '--seed', '-s', type=int, default=42,
         help='seed')
@@ -110,16 +113,18 @@ def main():
     )
 
     # TRAINER
-    trainer = pl.Trainer(default_root_dir=root_path,
-                         logger=logger,
-                         callbacks=[
-                             ckpt_callback, lr_callback, early_stop_callback
-                         ],
-                         gradient_clip_val=1.0,
-                         max_epochs=args.max_epochs,
-                         enable_progress_bar=True,
-                         deterministic=False,
-                         log_every_n_steps=1)
+    trainer = pl.Trainer(
+        default_root_dir=root_path,
+        logger=logger,
+        callbacks=[
+            ckpt_callback, lr_callback, early_stop_callback
+        ],
+        gradient_clip_val=1.0,
+        max_epochs=args.max_epochs,
+        enable_progress_bar=True,
+        deterministic=False,
+        accumulate_grad_batches=args.accumulate_grad_batches
+    )
 
     # FIT MODEL
     trainer.fit(model=model,
