@@ -57,17 +57,15 @@ class UpSample(nn.Module):
     def __init__(self, in_channels, out_channels, attention=False):
         super().__init__()
         self.attention = attention
+        self.convT = nn.ConvTranspose2d(in_channels, out_channels, kernel_size=2, stride=2)
         if attention:
-            self.attn = Attention(in_channels, in_channels, out_channels)
-        else:
-            self.convT = nn.ConvTranspose2d(in_channels, out_channels, kernel_size=2, stride=2)
+            self.attn = Attention(out_channels, out_channels, out_channels//2)
         self.conv = _make_layers(in_channels, out_channels)
 
     def forward(self, x1, x2):
+        x1 = self.convT(x1)
         if self.attention:
             x2 = self.attn(x1, x2)
-        else:
-            x1 = self.convT(x1)
         out = torch.cat([x2, x1], dim=1)
         out = self.conv(out)
         return out
@@ -108,5 +106,5 @@ class UNet(nn.Module):
 
 if __name__ == "__main__":
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = UNet(in_channels=3).to(device)
+    model = UNet(in_channels=3, attention=True).to(device)
     print(summary(model, input_size=(3, 256, 256), device=device.type))
