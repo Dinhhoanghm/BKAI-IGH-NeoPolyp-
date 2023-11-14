@@ -1,5 +1,11 @@
 ![Alt text](img/visualize.png)
 
+## Install Dependencies
+
+```bash
+pip install -e .
+```
+
 ## Unzip data
 
 ```bash
