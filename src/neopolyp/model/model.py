@@ -23,7 +23,7 @@ class NeoPolypModel(pl.LightningModule):
     def _forward(self, batch, batch_idx, name="train"):
         image, mask = batch['image'].float(), batch['mask'].long()
         logits = self(image)
-        loss = self.dice_loss(logits, mask) + self.entrophy_loss(logits, mask)
+        loss = self.entrophy_loss(logits, mask)
         d_score = dice_score(logits, mask)
         self.log_dict(
             {
