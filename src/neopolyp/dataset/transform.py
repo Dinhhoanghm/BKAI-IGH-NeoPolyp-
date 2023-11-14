@@ -22,11 +22,7 @@ class TrainTransform:
         ])
 
     def __call__(self, img, mask):
-        data = self.transform(image=img, mask=mask)
-        return {
-            'image': data['image'] / 255.,
-            'mask': data['mask']
-        }
+        return self.transform(image=img, mask=mask)
 
 
 class ValTransform:
@@ -50,4 +46,4 @@ class TestTransform:
         ])
 
     def __call__(self, img):
-        return self.transform(image=img)['image'] / 255.
+        return self.transform(image=img)['image']
