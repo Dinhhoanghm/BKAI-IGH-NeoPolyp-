@@ -93,7 +93,7 @@ def main():
     val_loader = DataLoader(
         dataset=val_dataset,
         batch_size=args.batch_size,
-        num_workers=0,
+        num_workers=args.num_workers,
         shuffle=False
     )
 
