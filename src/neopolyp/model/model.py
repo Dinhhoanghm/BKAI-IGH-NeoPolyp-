@@ -2,13 +2,17 @@ import torch
 import torch.nn as nn
 import pytorch_lightning as pl
 from .unet import UNet
+from .resunet import Resnet50Unet
 from .loss import dice_score, DiceLoss
 
 
 class NeoPolypModel(pl.LightningModule):
-    def __init__(self, lr: float = 1e-4):
+    def __init__(self, lr: float = 1e-4, name: str = "resunet"):
         super().__init__()
-        self.model = UNet(in_channels=3)
+        if name == "resunet":
+            self.model = Resnet50Unet(n_classes=3)
+        else:
+            self.model = UNet(in_channels=3)
         self.lr = lr
         self.dice_loss = DiceLoss()
         self.entrophy_loss = nn.CrossEntropyLoss()
