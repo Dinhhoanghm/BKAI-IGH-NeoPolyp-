@@ -11,7 +11,7 @@ def mask2rgb(mask):
     for i in range(mask.shape[0]):
         for k in color_dict.keys():
             output[i, mask[i].long() == k] = color_dict[k]
-    return output
+    return output.to(mask.device)
 
 
 @torch.no_grad()
