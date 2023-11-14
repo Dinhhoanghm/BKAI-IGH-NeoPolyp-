@@ -9,18 +9,21 @@ import os
 import pandas as pd
 import numpy as np
 import cv2
+from tqdm import tqdm
 
 parser = argparse.ArgumentParser(description='NeoPolyp Inference')
 parser.add_argument('--model', type=str, default='model.pth',
                     help='model path')
 parser.add_argument('--data_path', type=str, default='data',
                     help='data path')
-parser.add_argument('--batch_size', type=int, default=32,
+parser.add_argument('--batch_size', type=int, default=1,
                     help='batch size')
 parser.add_argument('--num_workers', type=int, default=0,
                     help='number of workers')
 parser.add_argument('--save_path', type=str, default='/kaggle/working/predicted_masks',
                     help='save path')
+parser.add_argument('--csv_path', type=str, default='/kaggle/working/',
+                    help='csv path')
 args = parser.parse_args()
 
 
@@ -74,10 +77,9 @@ def main():
         strings = []
         ids = []
         ws, hs = [[] for i in range(2)]
-        for image_id in os.listdir(dir):
+        for image_id in tqdm(os.listdir(dir), total=len(os.listdir(dir))):
             id = image_id.split('.')[0]
             path = os.path.join(dir, image_id)
-            print(path)
             img = cv2.imread(path)[:, :, ::-1]
             h, w = img.shape[0], img.shape[1]
             for channel in range(2):
@@ -96,7 +98,9 @@ def main():
     df = pd.DataFrame(columns=['Id', 'Expected'])
     df['Id'] = res['ids']
     df['Expected'] = res['strings']
-    df.to_csv(r'output.csv', index=False)
+    if not os.path.isdir(args.csv_path):
+        os.mkdir(args.csv_path)
+    df.to_csv(os.path.join(args.csv_path, 'output.csv'), index=False)
 
 
 if __name__ == '__main__':
