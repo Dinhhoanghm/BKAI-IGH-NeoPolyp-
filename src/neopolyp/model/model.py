@@ -25,10 +25,12 @@ class NeoPolypModel(pl.LightningModule):
         logits = self(image)
         loss = self.entrophy_loss(logits, mask)
         d_score = dice_score(logits, mask)
+        acc = (logits.argmax(dim=1) == mask).float().mean()
         self.log_dict(
             {
                 f"{name}_loss": loss,
-                f"{name}_dice_score": d_score
+                f"{name}_dice_score": d_score,
+                f"{name}_acc": acc
             },
             on_step=False, on_epoch=True, sync_dist=True, prog_bar=True
         )
@@ -41,10 +43,9 @@ class NeoPolypModel(pl.LightningModule):
         return self._forward(batch, batch_idx, "val")
 
     def configure_optimizers(self):
-        optimizer = torch.optim.AdamW(
+        optimizer = torch.optim.Adam(
             params=self.parameters(),
             lr=self.lr,
-            betas=(0.9, 0.999)
         )
         scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
             optimizer=optimizer,
