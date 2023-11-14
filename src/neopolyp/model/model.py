@@ -15,7 +15,7 @@ class NeoPolypModel(pl.LightningModule):
             self.model = UNet(in_channels=3)
         self.lr = lr
         self.dice_loss = DiceLoss()
-        self.entrophy_loss = nn.CrossEntropyLoss()
+        self.entropy_loss = nn.CrossEntropyLoss()
 
     def forward(self, x):
         return self.model(x)
@@ -23,7 +23,7 @@ class NeoPolypModel(pl.LightningModule):
     def _forward(self, batch, batch_idx, name="train"):
         image, mask = batch['image'].float(), batch['mask'].long()
         logits = self(image)
-        loss = self.entrophy_loss(logits, mask)
+        loss = self.entropy_loss(logits, mask)
         d_score = dice_score(logits, mask)
         acc = (logits.argmax(dim=1) == mask).float().mean()
         self.log_dict(

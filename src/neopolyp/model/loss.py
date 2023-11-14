@@ -10,7 +10,7 @@ def mask2rgb(mask):
     output = torch.zeros((mask.shape[0], mask.shape[1], mask.shape[2], 3)).long()
     for i in range(mask.shape[0]):
         for k in color_dict.keys():
-            output[i, mask[i].long() == k] = color_dict[k]
+            output[i][mask[i].long() == k] = color_dict[k]
     return output.to(mask.device)
 
 
@@ -30,7 +30,8 @@ def dice_score(
     intersection = torch.sum(input_one_hot * target_one_hot, dims)
     cardinality = torch.sum(input_one_hot + target_one_hot, dims)
 
-    dice_score = 2. * intersection / (cardinality + 1e-6)
+    dice_score = (2. * intersection + 1e-6) / (cardinality + 1e-6)
+    print(dice_score)
     return dice_score.mean()
 
 
