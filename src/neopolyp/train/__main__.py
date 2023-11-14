@@ -35,6 +35,9 @@ def main():
         '--attention', '-a', default=False, action='store_true',
         help='use attention or not')
     parser.add_argument(
+        '--split_ratio', '-sr', type=float, default=0.9,
+        help='split ratio')
+    parser.add_argument(
         '--accumulate_grad_batches', '-agb', type=int, default=1,
         help='accumulate_grad_batches')
     parser.add_argument(
@@ -67,7 +70,7 @@ def main():
 
     train_dataset, val_dataset = random_split(
         dataset=train_dataset,
-        lengths=(0.9, 0.1),
+        lengths=(args.split_ratio, 1 - args.split_ratio),
         generator=torch.Generator().manual_seed(args.seed)
     )
 
