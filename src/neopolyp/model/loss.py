@@ -3,16 +3,15 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
-def one_hot(labels: torch.Tensor,
-            num_classes: int,
-            eps: float = 1e-6
-            ) -> torch.Tensor:
-    r"""Converts an integer label 2D tensor to a one-hot 3D tensor.
-        Label: (N, H, W) -> Onehot: (N, C, H, W)
-    """
-    batch_size, height, width = labels.shape
-    one_hot = torch.zeros(batch_size, num_classes, height, width).to(labels.device)
-    return one_hot.scatter_(1, labels.unsqueeze(1), 1.0) + eps
+def mask2rgb(mask):
+    color_dict = {0: torch.tensor([0, 0, 0]),
+                  1: torch.tensor([255, 0, 0]),
+                  2: torch.tensor([0, 255, 0])}
+    output = torch.zeros((mask.shape[0], mask.shape[1], mask.shape[2], 3)).long()
+    for i in range(mask.shape[0]):
+        for k in color_dict.keys():
+            output[i, mask[i].long() == k] = color_dict[k]
+    return output
 
 
 @torch.no_grad()
@@ -21,10 +20,10 @@ def dice_score(
     targets: torch.Tensor
 ) -> torch.Tensor:
     # compute softmax over the classes axis
-    input_one_hot = one_hot(inputs.argmax(dim=1), num_classes=inputs.shape[1])
+    input_one_hot = mask2rgb(inputs.argmax(dim=1))
 
     # create the labels one hot tensor
-    target_one_hot = one_hot(targets, num_classes=inputs.shape[1])
+    target_one_hot = mask2rgb(targets)
 
     # compute the actual dice score
     dims = (2, 3)
@@ -49,7 +48,7 @@ class DiceLoss(nn.Module):
         input_soft = F.softmax(inputs, dim=1)
 
         # create the labels one hot tensor
-        target_one_hot = one_hot(targets, num_classes=inputs.shape[1])
+        target_one_hot = mask2rgb(targets)
 
         # compute the actual dice score
         dims = (2, 3)
@@ -75,7 +74,7 @@ class FocalTverskyLoss(nn.Module):
         input_soft = F.softmax(inputs, dim=1)
 
         # create the labels one hot tensor
-        target_one_hot = one_hot(targets, num_classes=inputs.shape[1])
+        target_one_hot = mask2rgb(targets)
         # flatten label and prediction tensors
         input_soft = input_soft.view(-1)
         target_one_hot = target_one_hot.view(-1)
@@ -89,4 +88,3 @@ class FocalTverskyLoss(nn.Module):
         focal_tversky = (1 - tversky)**gamma
 
         return focal_tversky
-
