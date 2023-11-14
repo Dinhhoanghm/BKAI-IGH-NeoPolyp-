@@ -15,9 +15,7 @@ class NeoPolypModel(pl.LightningModule):
             self.model = UNet(in_channels=3)
         self.lr = lr
         self.dice_loss = DiceLoss()
-        self.entrophy_loss = nn.CrossEntropyLoss(
-            weight=torch.tensor([0.05, 0.45, 0.5])
-        )
+        self.entrophy_loss = nn.CrossEntropyLoss()
 
     def forward(self, x):
         return self.model(x)
