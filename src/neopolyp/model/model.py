@@ -49,7 +49,7 @@ class NeoPolypModel(pl.LightningModule):
         )
         scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
             optimizer=optimizer,
-            patience=20,
+            patience=5,
             verbose=True,
             factor=0.5
         )
