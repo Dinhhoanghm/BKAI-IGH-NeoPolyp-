@@ -6,10 +6,18 @@ import cv2
 class TrainTransform:
     def __init__(self) -> None:
         self.transform = A.Compose([
-            A.Resize(240, 320, interpolation=cv2.INTER_LINEAR),
             A.HorizontalFlip(p=0.3),
             A.VerticalFlip(p=0.3),
-            A.Rotate(limit=30, p=0.3),
+            A.RandomGamma(gamma_limit=(70, 130), eps=None, always_apply=False, p=0.2),
+            A.RGBShift(p=0.3, r_shift_limit=10, g_shift_limit=10, b_shift_limit=10),
+            A.OneOf([A.Blur(), A.GaussianBlur(), A.GlassBlur(), A.MotionBlur(),
+                    A.GaussNoise(), A.Sharpen(), A.MedianBlur(), A.MultiplicativeNoise()]),
+            A.Cutout(p=0.3, max_h_size=35, max_w_size=35, fill_value=255),
+            A.RandomSnow(snow_point_lower=0.1, snow_point_upper=0.15, brightness_coeff=1.5, p=0.09),
+            A.RandomShadow(p=0.1),
+            A.ShiftScaleRotate(p=0.3, border_mode=cv2.BORDER_CONSTANT, shift_limit=0.15, scale_limit=0.15),
+            A.RandomCrop(240, 320),
+            A.Normalize(),
             ToTensorV2(),
         ])
 
@@ -21,10 +29,23 @@ class TrainTransform:
         }
 
 
+class ValTransform:
+    def __init__(self) -> None:
+        self.transform = A.Compose([
+            A.Resize(240, 320, interpolation=cv2.INTER_LINEAR),
+            A.Normalize(),
+            ToTensorV2(),
+        ])
+
+    def __call__(self, img, mask):
+        return self.transform(image=img, mask=mask)
+
+
 class TestTransform:
     def __init__(self) -> None:
         self.transform = A.Compose([
             A.Resize(240, 320, interpolation=cv2.INTER_LINEAR),
+            A.Normalize(),
             ToTensorV2(),
         ])
 

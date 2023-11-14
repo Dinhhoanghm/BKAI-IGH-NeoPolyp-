@@ -1,30 +1,30 @@
-import os
-from .transform import TrainTransform, TestTransform
+from .transform import TrainTransform, TestTransform, ValTransform
 from torch.utils.data import Dataset
 import cv2
 import numpy as np
 
 
 class NeoPolypDataset(Dataset):
-    def __init__(self, session: str = "train", path: str = "data") -> None:
+    def __init__(
+        self,
+        image_dir: list,
+        gt_dir: list | None = None,
+        session: str = "train"
+    ) -> None:
         super().__init__()
         self.session = session
         if session == "train":
-            self.train_path = []
-            for root, dirs, files in os.walk(os.path.join(path, "train")):
-                for f in files:
-                    self.train_path.append(os.path.join(root, f))
-            self.train_gt_path = []
-            for root, dirs, files in os.walk(os.path.join(path, "train_gt")):
-                for f in files:
-                    self.train_gt_path.append(os.path.join(root, f))
+            self.train_path = image_dir
+            self.train_gt_path = gt_dir
             self.len = len(self.train_path)
             self.train_transform = TrainTransform()
+        elif session == "val":
+            self.val_path = image_dir
+            self.val_gt_path = gt_dir
+            self.len = len(self.val_path)
+            self.val_transform = ValTransform()
         else:
-            self.test_path = []
-            for root, dirs, files in os.walk(os.path.join(path, "test")):
-                for f in files:
-                    self.test_path.append(os.path.join(root, f))
+            self.test_path = image_dir
             self.len = len(self.test_path)
             self.test_transform = TestTransform()
 
@@ -61,6 +61,11 @@ class NeoPolypDataset(Dataset):
             img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
             gt = self._read_mask(self.train_gt_path[index])
             return self.train_transform(img, gt)
+        elif self.session == "val":
+            img = cv2.imread(self.val_path[index])
+            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+            gt = self._read_mask(self.val_gt_path[index])
+            return self.val_transform(img, gt)
         else:
             img = cv2.imread(self.test_path[index])
             H, W, _ = img.shape

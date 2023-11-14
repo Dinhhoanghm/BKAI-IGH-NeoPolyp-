@@ -2,7 +2,7 @@ from pytorch_lightning.callbacks import ModelCheckpoint, LearningRateMonitor
 from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 from pytorch_lightning.loggers import WandbLogger
 from ..dataset.dataset import NeoPolypDataset
-from torch.utils.data import DataLoader, random_split
+from torch.utils.data import DataLoader
 from ..model.model import NeoPolypModel
 import torch
 import wandb
@@ -66,13 +66,22 @@ def main():
         logger = None
 
     # DATALOADER
-    train_dataset = NeoPolypDataset("train", args.data_path)
+    all_path = []
+    for root, dirs, files in os.walk(os.path.join(args.data_path, "train")):
+        for f in files:
+            all_path.append(os.path.join(root, f))
+    all_gt_path = []
+    for root, dirs, files in os.walk(os.path.join(args.data_path, "train_gt")):
+        for f in files:
+            all_gt_path.append(os.path.join(root, f))
 
-    train_dataset, val_dataset = random_split(
-        dataset=train_dataset,
-        lengths=(args.split_ratio, 1 - args.split_ratio),
-        generator=torch.Generator().manual_seed(args.seed)
-    )
+    train_size = int(args.split_ratio * len(all_path))
+    train_path = all_path[:train_size]
+    train_gt_path = all_gt_path[:train_size]
+    val_path = all_path[train_size:]
+    val_gt_path = all_gt_path[train_size:]
+    train_dataset = NeoPolypDataset(train_path, train_gt_path, session="train")
+    val_dataset = NeoPolypDataset(val_path, val_gt_path, session="val")
 
     train_loader = DataLoader(
         dataset=train_dataset,
