@@ -5,8 +5,8 @@ import torch.nn.functional as F
 
 def mask2rgb(mask):
     color_dict = {0: torch.tensor([0, 0, 0]),
-                  1: torch.tensor([255, 0, 0]),
-                  2: torch.tensor([0, 255, 0])}
+                  1: torch.tensor([1, 0, 0]),
+                  2: torch.tensor([0, 1, 0])}
     output = torch.zeros((mask.shape[0], mask.shape[1], mask.shape[2], 3)).long()
     for i in range(mask.shape[0]):
         for k in color_dict.keys():
