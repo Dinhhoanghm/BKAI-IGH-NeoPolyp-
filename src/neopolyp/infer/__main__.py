@@ -27,7 +27,11 @@ args = parser.parse_args()
 def main():
     model = NeoPolypModel.load_from_checkpoint(args.model)
     model.eval()
-    test_dataset = NeoPolypDataset("test", args.data_path)
+    all_path = []
+    for root, dirs, files in os.walk(os.path.join(args.data_path, "test")):
+        for f in files:
+            all_path.append(os.path.join(root, f))
+    test_dataset = NeoPolypDataset(all_path, session="test")
     test_dataloader = DataLoader(
         dataset=test_dataset,
         batch_size=args.batch_size,
