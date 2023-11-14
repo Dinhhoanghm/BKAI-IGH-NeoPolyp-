@@ -27,7 +27,18 @@ parser.add_argument('--csv_path', type=str, default='/kaggle/working/',
 args = parser.parse_args()
 
 
+def mask2rgb(mask):
+    color_dict = {0: torch.tensor([0, 0, 0]),
+                  1: torch.tensor([1, 0, 0]),
+                  2: torch.tensor([0, 1, 0])}
+    output = torch.zeros((mask.shape[0], mask.shape[1], 3)).long()
+    for k in color_dict.keys():
+        output[mask.long() == k] = color_dict[k]
+    return output.to(mask.device)
+
+
 def main():
+    print("Loading model...!")
     model = NeoPolypModel.load_from_checkpoint(args.model)
     model.eval()
     all_path = []
@@ -43,12 +54,14 @@ def main():
     )
     if not os.path.isdir(args.save_path):
         os.mkdir(args.save_path)
-    for _, (img, file_id, H, W) in enumerate(test_dataloader):
+    print("Predicting...!")
+    for _, (img, file_id, H, W) in enumerate(tqdm(test_dataloader, total=len(test_dataloader))):
         with torch.no_grad():
             predicted_mask = model(img.cuda())
         for i in range(args.batch_size):
             filename = file_id[i] + ".png"
-            one_hot = F.one_hot(torch.argmax(predicted_mask[i], 0)).permute(2, 0, 1).float()
+            argmax = torch.argmax(predicted_mask[i], 0)
+            one_hot = mask2rgb(argmax).float().permute(2, 0, 1)
             mask2img = Resize((H[i].item(), W[i].item()), interpolation=InterpolationMode.NEAREST)(
                 ToPILImage()(one_hot))
             mask2img.save(os.path.join(args.save_path, filename))
@@ -94,6 +107,7 @@ def main():
         }
         return r
 
+    print("Converting to csv...!")
     res = mask2string(args.save_path)
     df = pd.DataFrame(columns=['Id', 'Expected'])
     df['Id'] = res['ids']
