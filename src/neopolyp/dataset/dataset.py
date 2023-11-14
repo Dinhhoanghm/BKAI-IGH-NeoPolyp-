@@ -58,18 +58,15 @@ class NeoPolypDataset(Dataset):
     def __getitem__(self, index: int):
         if self.session == "train":
             img = cv2.imread(self.train_path[index])
-            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
             gt = self._read_mask(self.train_gt_path[index])
             return self.train_transform(img, gt)
         elif self.session == "val":
             img = cv2.imread(self.val_path[index])
-            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
             gt = self._read_mask(self.val_gt_path[index])
             return self.val_transform(img, gt)
         else:
             img = cv2.imread(self.test_path[index])
             H, W, _ = img.shape
-            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
             img = self.test_transform(img)
             file_id = self.test_path[index].split('/')[-1].split('.')[0]
             return img, file_id, H, W

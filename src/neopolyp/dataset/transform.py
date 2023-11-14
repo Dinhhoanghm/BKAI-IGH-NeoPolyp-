@@ -18,7 +18,7 @@ class TrainTransform:
             A.RandomShadow(p=0.1),
             A.ShiftScaleRotate(p=0.45, border_mode=cv2.BORDER_CONSTANT, shift_limit=0.15, scale_limit=0.15),
             A.RandomCrop(256, 256),
-            A.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
+            A.Normalize(),
             ToTensorV2(),
         ])
 
