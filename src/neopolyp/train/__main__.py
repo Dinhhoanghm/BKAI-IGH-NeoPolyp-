@@ -8,6 +8,7 @@ import torch
 import wandb
 import pytorch_lightning as pl
 import argparse
+import random
 import os
 
 torch.multiprocessing.set_sharing_strategy('file_system')
@@ -71,6 +72,10 @@ def main():
     for root, dirs, files in os.walk(os.path.join(args.data_path, "train_gt")):
         for f in files:
             all_gt_path.append(os.path.join(root, f))
+
+    shuffle_list = list(zip(all_path, all_gt_path))
+    random.shuffle(shuffle_list)
+    all_path, all_gt_path = zip(*shuffle_list)
 
     train_size = int(args.split_ratio * len(all_path))
     train_path = all_path[:train_size]
