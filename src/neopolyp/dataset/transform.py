@@ -29,7 +29,7 @@ class ValTransform:
     def __init__(self) -> None:
         self.transform = A.Compose([
             A.Resize(256, 256, interpolation=cv2.INTER_LINEAR),
-            # A.Normalize(),
+            A.Normalize(),
             ToTensorV2(),
         ])
 
