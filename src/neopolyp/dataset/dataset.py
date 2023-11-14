@@ -42,11 +42,11 @@ class NeoPolypDataset(Dataset):
         upper_mask = cv2.inRange(image, lower2, upper2)
 
         red_mask = lower_mask + upper_mask
-        red_mask[red_mask != 0] = 2
+        red_mask[red_mask != 0] = 1
 
-        # boundary RED color range values; Hue (36 - 70)
+        # boundary GREEN color range values; Hue (36 - 70)
         green_mask = cv2.inRange(image, (36, 25, 25), (70, 255, 255))
-        green_mask[green_mask != 0] = 1
+        green_mask[green_mask != 0] = 2
 
         full_mask = cv2.bitwise_or(red_mask, green_mask)
         full_mask = full_mask.astype(np.uint8)
