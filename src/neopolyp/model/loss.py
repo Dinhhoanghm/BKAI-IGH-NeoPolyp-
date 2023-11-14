@@ -31,7 +31,6 @@ def dice_score(
     cardinality = torch.sum(input_one_hot + target_one_hot, dims)
 
     dice_score = (2. * intersection + 1e-6) / (cardinality + 1e-6)
-    print(dice_score)
     return dice_score.mean()
 
 
