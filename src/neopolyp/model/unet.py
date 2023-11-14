@@ -14,6 +14,47 @@ def _make_layers(in_channels: int, out_channels: int):
     )
 
 
+class RecurrentBlock(nn.Module):
+    def __init__(self, ch_out, t=2):
+        super(RecurrentBlock, self).__init__()
+        self.t = t
+        self.ch_out = ch_out
+        self.conv = nn.Sequential(
+            nn.Conv2d(ch_out, ch_out, kernel_size=3, stride=1, padding=1, bias=True),
+            nn.BatchNorm2d(ch_out),
+            nn.ReLU(inplace=True)
+        )
+
+    def forward(self, x):
+        for i in range(self.t):
+
+            if i == 0:
+                x1 = self.conv(x)
+
+            x1 = self.conv(x+x1)
+        return x1
+
+
+class R2Block(nn.Module):
+    def __init__(self, ch_in, ch_out, t=2, max_pool=True):
+        super(R2Block, self).__init__()
+        self.pool = max_pool
+        if max_pool:
+            self.max_pool = nn.MaxPool2d(kernel_size=2, stride=2)
+        self.RCNN = nn.Sequential(
+            RecurrentBlock(ch_out, t=t),
+            RecurrentBlock(ch_out, t=t)
+        )
+        self.Conv_1x1 = nn.Conv2d(ch_in, ch_out, kernel_size=1, stride=1, padding=0)
+
+    def forward(self, x):
+        if self.pool:
+            x = self.max_pool(x)
+        x = self.Conv_1x1(x)
+        x1 = self.RCNN(x)
+        return x+x1
+
+
 class Attention(nn.Module):
     def __init__(self, F_g, F_l, F_int):
         super(Attention, self).__init__()
@@ -54,16 +95,25 @@ class DownSample(nn.Module):
 
 
 class UpSample(nn.Module):
-    def __init__(self, in_channels, out_channels, attention=False):
+    def __init__(
+        self,
+        in_channels: int,
+        out_channels: int,
+        attention: bool = False,
+        recurrent: bool = True
+    ):
         super().__init__()
         self.attention = attention
-        self.convT = nn.ConvTranspose2d(in_channels, out_channels, kernel_size=2, stride=2)
+        self.up_conv = nn.ConvTranspose2d(in_channels, out_channels, kernel_size=2, stride=2)
         if attention:
             self.attn = Attention(out_channels, out_channels, out_channels//2)
-        self.conv = _make_layers(in_channels, out_channels)
+        if recurrent:
+            self.conv = R2Block(in_channels, out_channels, max_pool=False)
+        else:
+            self.conv = _make_layers(in_channels, out_channels)
 
     def forward(self, x1, x2):
-        x1 = self.convT(x1)
+        x1 = self.up_conv(x1)
         if self.attention:
             x2 = self.attn(x1, x2)
         out = torch.cat([x2, x1], dim=1)
@@ -75,19 +125,29 @@ class UNet(nn.Module):
     def __init__(
         self,
         in_channels: int,
-        attention: bool = False
+        attention: bool = True,
+        recurrent: bool = True
     ):
         super().__init__()
         self.attention = attention
-        self.conv_in = _make_layers(in_channels, 64)
-        self.down1 = DownSample(64, 128)
-        self.down2 = DownSample(128, 256)
-        self.down3 = DownSample(256, 512)
-        self.down4 = DownSample(512, 1024)
-        self.up1 = UpSample(1024, 512, attention=attention)
-        self.up2 = UpSample(512, 256, attention=attention)
-        self.up3 = UpSample(256, 128, attention=attention)
-        self.up4 = UpSample(128, 64, attention=attention)
+
+        if recurrent:
+            self.conv_in = R2Block(in_channels, 64, max_pool=False)
+            self.down1 = R2Block(64, 128)
+            self.down2 = R2Block(128, 256)
+            self.down3 = R2Block(256, 512)
+            self.down4 = R2Block(512, 1024)
+        else:
+            self.conv_in = _make_layers(in_channels, 64)
+            self.down1 = DownSample(64, 128)
+            self.down2 = DownSample(128, 256)
+            self.down3 = DownSample(256, 512)
+            self.down4 = DownSample(512, 1024)
+
+        self.up1 = UpSample(1024, 512, attention=attention, recurrent=recurrent)
+        self.up2 = UpSample(512, 256, attention=attention, recurrent=recurrent)
+        self.up3 = UpSample(256, 128, attention=attention, recurrent=recurrent)
+        self.up4 = UpSample(128, 64, attention=attention, recurrent=recurrent)
         self.conv_out = nn.Conv2d(64, 3, kernel_size=1)
 
     def forward(self, x):
@@ -105,6 +165,5 @@ class UNet(nn.Module):
 
 
 if __name__ == "__main__":
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = UNet(in_channels=3, attention=True).to(device)
-    print(summary(model, input_size=(3, 256, 256), device=device.type))
+    model = UNet(in_channels=3, attention=True)
+    print(summary(model, input_size=(3, 64, 64), device="cpu"))

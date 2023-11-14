@@ -6,9 +6,9 @@ from .loss import dice_score, DiceLoss
 
 
 class NeoPolypModel(pl.LightningModule):
-    def __init__(self, lr: float = 1e-4, attention: bool = True):
+    def __init__(self, lr: float = 1e-4):
         super().__init__()
-        self.model = UNet(in_channels=3, attention=attention)
+        self.model = UNet(in_channels=3)
         self.lr = lr
         self.dice_loss = DiceLoss()
         self.entrophy_loss = nn.CrossEntropyLoss()

@@ -32,9 +32,6 @@ def main():
         '--num_workers', '-nw', type=int, default=2,
         help='number of workers')
     parser.add_argument(
-        '--attention', '-a', default=False, action='store_true',
-        help='use attention or not')
-    parser.add_argument(
         '--split_ratio', '-sr', type=float, default=0.9,
         help='split ratio')
     parser.add_argument(
@@ -98,7 +95,7 @@ def main():
     )
 
     # MODEL
-    model = NeoPolypModel(lr=args.lr, attention=args.attention)
+    model = NeoPolypModel(lr=args.lr)
 
     # CALLBACK
     root_path = os.path.join(os.getcwd(), "checkpoints")
