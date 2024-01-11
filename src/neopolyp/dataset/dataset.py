@@ -1,4 +1,4 @@
-from .transform import TrainTransform, TestTransform, ValTransform
+import neopolyp
 from torch.utils.data import Dataset
 import cv2
 import numpy as np
@@ -17,16 +17,14 @@ class NeoPolypDataset(Dataset):
             self.train_path = image_dir
             self.train_gt_path = gt_dir
             self.len = len(self.train_path)
-            self.train_transform = TrainTransform()
         elif session == "val":
             self.val_path = image_dir
             self.val_gt_path = gt_dir
             self.len = len(self.val_path)
-            self.val_transform = ValTransform()
         else:
             self.test_path = image_dir
             self.len = len(self.test_path)
-            self.test_transform = TestTransform()
+        self.transform = neopolyp.Transform(session)
 
     @staticmethod
     def _read_mask(mask_path):
@@ -59,14 +57,14 @@ class NeoPolypDataset(Dataset):
         if self.session == "train":
             img = cv2.imread(self.train_path[index])
             gt = self._read_mask(self.train_gt_path[index])
-            return self.train_transform(img, gt)
+            return self.transform(img, gt)
         elif self.session == "val":
             img = cv2.imread(self.val_path[index])
             gt = self._read_mask(self.val_gt_path[index])
-            return self.val_transform(img, gt)
+            return self.transform(img, gt)
         else:
             img = cv2.imread(self.test_path[index])
             H, W, _ = img.shape
-            img = self.test_transform(img)
+            img = self.transform(img)
             file_id = self.test_path[index].split('/')[-1].split('.')[0]
             return img, file_id, H, W

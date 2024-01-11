@@ -165,3 +165,5 @@ checkpoints
 test.ipynb
 predict
 output.csv
+bkai-igh-neopolyp
+wandb

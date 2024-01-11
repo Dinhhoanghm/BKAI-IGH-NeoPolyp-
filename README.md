@@ -1,23 +1,15 @@
 ![Alt text](img/visualize.png)
 
-## Install Dependencies
+## Setup
 
 ```bash
-pip install -e .
-```
-
-## Unzip data
-
-```bash
-unzip bkai-igh-neopolyp.zip -d data/
+source ./script/setup.sh
 ```
 
 ## Training
 
 ```bash
-python -m neopolyp.train -bs 8 -me 200 -nw 4 -l 0.0001 -sr 0.96\
-        -d /kaggle/input/bkai-igh/bkai-igh-neopolyp \
-        -w -wk [YOUR_WANDB_KEY]
+source ./script/train.sh
 ```
 
 ## Testing
