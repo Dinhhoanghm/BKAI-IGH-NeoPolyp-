@@ -1,6 +1,6 @@
 python -m neopolyp.train \
         --model unet \
-        --batch_size 8 \
+        --batch_size 16 \
         --max_epochs 50 \
         --num_workers 4 \
         --lr 0.0001 \
