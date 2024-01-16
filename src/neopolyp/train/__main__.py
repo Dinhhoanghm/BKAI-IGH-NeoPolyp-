@@ -15,8 +15,11 @@ torch.multiprocessing.set_sharing_strategy('file_system')
 
 
 def main():
-    # PARSER
+    # PARSERs
     parser = argparse.ArgumentParser()
+    parser.add_argument(
+        '--model', '-m', type=str, default='resunet',
+        help='model name')
     parser.add_argument(
         '--data_path', '-d', type=str, default='data',
         help='model name')
@@ -100,7 +103,7 @@ def main():
     )
 
     # MODEL
-    model = NeoPolypModel(lr=args.lr)
+    model = NeoPolypModel(lr=args.lr, name=args.model)
 
     # CALLBACK
     root_path = os.path.join(os.getcwd(), "checkpoints")

@@ -12,7 +12,7 @@ class NeoPolypModel(pl.LightningModule):
         if name == "resunet":
             self.model = Resnet50Unet(n_classes=3)
         else:
-            self.model = UNet(in_channels=3)
+            self.model = UNet(in_channels=3, attention=False, recurrent=False)
         self.lr = lr
         self.dice_loss = DiceLoss()
         self.entropy_loss = nn.CrossEntropyLoss()
