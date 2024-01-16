@@ -1,6 +1,7 @@
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
 import cv2
+import torch
 
 
 class Transform:
@@ -29,7 +30,7 @@ class Transform:
             ])
 
     def __call__(self, img, mask=None):
-        if mask.any():
+        if isinstance(mask, torch.Tensor):
             return self.transform(image=img, mask=mask)
         else:
             return self.transform(image=img)

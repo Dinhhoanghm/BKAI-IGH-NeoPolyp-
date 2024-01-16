@@ -9,7 +9,8 @@ class NeoPolypDataset(Dataset):
         self,
         image_dir: list,
         gt_dir: list | None = None,
-        session: str = "train"
+        session: str = "train",
+        transform: bool = True,
     ) -> None:
         super().__init__()
         self.session = session
@@ -24,7 +25,10 @@ class NeoPolypDataset(Dataset):
         else:
             self.test_path = image_dir
             self.len = len(self.test_path)
-        self.transform = neopolyp.Transform(session)
+        if transform:
+            self.transform = neopolyp.Transform(session)
+        else:
+            self.transform = None
 
     @staticmethod
     def _read_mask(mask_path):
@@ -65,6 +69,7 @@ class NeoPolypDataset(Dataset):
         else:
             img = cv2.imread(self.test_path[index])
             H, W, _ = img.shape
-            img = self.transform(img)
+            if self.transform:
+                img = self.transform(img)
             file_id = self.test_path[index].split('/')[-1].split('.')[0]
             return img, file_id, H, W
