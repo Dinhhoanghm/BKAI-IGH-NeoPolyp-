@@ -6,4 +6,4 @@ python -m neopolyp.train \
         --lr 0.0001 \
         --split_ratio 0.96 \
         --data_path bkai-igh-neopolyp \
-        -w -wk 844fc0e4bcb3ee33a64c04b9ba845966de80180e
+        -w -wk 626a895d3032d1de89568d5eb599298b39db1c48
