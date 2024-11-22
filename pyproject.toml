@@ -1,8 +1,8 @@
 [project]
 name = "neopolyp"
-authors = [{name = "datvodinh", email = "vodinhdat03@gmail.com"}]
+authors = [{name = "dodinhhoang", email = "dodinhhoanghm@gmail.com"}]
 version = "1.0.0"
-requires-python = ">=3.9"
+requires-python = ">=3.8"
 dependencies = [
     "torch",
     "torchvision",
