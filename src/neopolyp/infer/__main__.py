@@ -20,9 +20,9 @@ parser.add_argument('--batch_size', type=int, default=1,
                     help='batch size')
 parser.add_argument('--num_workers', type=int, default=0,
                     help='number of workers')
-parser.add_argument('--save_path', type=str, default='/kaggle/working/predicted_masks',
+parser.add_argument('--save_path', type=str, default='/home/mh/Downloads/BKAI-IGH-NeoPolyp-',
                     help='save path')
-parser.add_argument('--csv_path', type=str, default='/kaggle/working/',
+parser.add_argument('--csv_path', type=str, default='/home/mh/Downloads/BKAI-IGH-NeoPolyp-',
                     help='csv path')
 args = parser.parse_args()
 
