@@ -2,7 +2,7 @@
 name = "neopolyp"
 authors = [{name = "dodinhhoang", email = "dodinhhoanghm@gmail.com"}]
 version = "1.0.0"
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 dependencies = [
     "torch",
     "torchvision",
