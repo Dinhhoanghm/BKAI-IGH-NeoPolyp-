@@ -63,6 +63,7 @@ def main():
         logger = WandbLogger(project="deep-learning-exercise",
                              name=name,
                              log_model="all")
+
     else:
         logger = None
 

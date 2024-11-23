@@ -4,6 +4,7 @@ import pytorch_lightning as pl
 from .unet import UNet
 from .resunet import Resnet50Unet
 from .loss import dice_score, DiceLoss
+import wandb
 
 
 class NeoPolypModel(pl.LightningModule):
@@ -26,6 +27,12 @@ class NeoPolypModel(pl.LightningModule):
         loss = self.entropy_loss(logits, mask)
         d_score = dice_score(logits, mask)
         acc = (logits.argmax(dim=1) == mask).float().mean()
+        wandb.log({
+          f"{name}_loss": loss,
+          f"{name}_dice_score": d_score,
+          f"{name}_acc": acc
+        })
+
         self.log_dict(
             {
                 f"{name}_loss": loss,
