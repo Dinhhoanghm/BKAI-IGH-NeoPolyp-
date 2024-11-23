@@ -2,13 +2,14 @@ import neopolyp
 from torch.utils.data import Dataset
 import cv2
 import numpy as np
+from typing import Optional
 
 
 class NeoPolypDataset(Dataset):
     def __init__(
         self,
         image_dir: list,
-        gt_dir: list | None = None,
+        gt_dir: Optional[list] = None,
         session: str = "train",
         transform: bool = True,
     ) -> None:
