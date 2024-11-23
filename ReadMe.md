@@ -1,17 +1,11 @@
-# BKAI-IGH NeoPolyp
+BKAI-IGH NeoPolyp
+Student Name: Đường Minh Quân Student ID: 20210710
 
-Student Name: Đường Minh Quân
-Student ID: 20210710
+Inferencing guideline
+Step 1: Add data "bkai-igh-neopolyp" to /kaggle/input/
 
-# Inferencing guideline
+Step 2: First, we need to download the "model.pth" from Google Drive and put it in "/kaggle/working/"
 
-Step 1:
-Add data "bkai-igh-neopolyp" to /kaggle/input/
-
-Step 2:
-First, we need to download the "model.pth" from Google Drive and put it in "/kaggle/working/"
-
-```python
 import requests
 import os
 
@@ -25,13 +19,9 @@ with open(os.path.join(save_dir, 'model.pth'), 'wb') as f:
     f.write(response.content)
 
 print('Save "model.pth" successfully!')
-```
-
 Inferring
 
-```python
 !git clone https://github.com/2uanDM/unet-semantic-segmentation.git
 !cp /kaggle/working/model.pth /kaggle/working/unet-semantic-segmentation/
 !pip install -q segmentation_models_pytorch
 !python /kaggle/working/unet-semantic-segmentation/infer.py
-```
