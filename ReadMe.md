@@ -6,25 +6,17 @@ Student ID: 20225445
 
 Inferencing guideline
 
-Step 1: Add data "bkai-igh-neopolyp" to /kaggle/input/
+Step 1: 
 
-Step 2: First, we need to download the "model.pth" from Google Drive and put it in "/kaggle/working/"
+git clone <your_repo_url>
 
-import requests
+cd <your_repo_name>
 
-import os
+Step 2: we need to download the "model.pth" from Google Drive 
 
-drive_url = f'https://drive.google.com/uc?id=11X5lrZV2QAklZ6n9ReQUmb2yyE_eQCuT&export=download&confirm=t&uuid=501d3c0c-6f65-438c-9857-3a70f62ef5b4'
+https://drive.google.com/uc?id=11X5lrZV2QAklZ6n9ReQUmb2yyE_eQCuT&export=download&confirm=t&uuid=501d3c0c-6f65-438c-9857-3a70f62ef5b4'
 
-save_dir = '/kaggle/working/'
 
-response = requests.get(drive_url)
-
-with open(os.path.join(save_dir, 'model.pth'), 'wb') as f:
-
-    f.write(response.content)
-
-print('Save "model.pth" successfully!')
 
 
 Inferring

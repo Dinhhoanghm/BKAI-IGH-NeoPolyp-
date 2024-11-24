@@ -1,100 +1,79 @@
-import os 
-import sys
-sys.path.append(os.getcwd())
-
-import numpy as np 
-import pandas as pd 
-import torch 
+import argparse
+import os
 import cv2
+import torch
+import numpy as np
 import segmentation_models_pytorch as smp
-
-from albumentations import Compose, Normalize, Resize
+import albumentations as A
 from albumentations.pytorch.transforms import ToTensorV2
-from mask_io import mask2string
-import albumentations as A 
 
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+# Argument parser
+parser = argparse.ArgumentParser(description="Run inference on an image using a pretrained segmentation model.")
+parser.add_argument('--image_path', type=str, required=True, help="Path to the input image.")
+parser.add_argument('--checkpoint', type=str, default='model.pth', help="Path to the model checkpoint.")
+parser.add_argument('--output_dir', type=str, default='result', help="Directory to save the output image.")
+args = parser.parse_args()
 
-# Load the model
+# Load model
 model = smp.UnetPlusPlus(
-    encoder_name="resnet101",
+    encoder_name="resnet34",
     encoder_weights="imagenet",
     in_channels=3,
     classes=3
 )
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+# Load checkpoint
+checkpoint = torch.load(args.checkpoint, map_location=device)
+model.load_state_dict(checkpoint.get("model", checkpoint))
 model.to(device)
+model.eval()
 
-# Load the pretrained model 
-check_point = torch.load('model.pth', map_location=device)
-model.load_state_dict(check_point['model'])
-
-color_mapping = {
-    0: (0, 0, 0), # Background
-    1: (255, 0, 0), # Neoplastic polyp
-    2: (0, 255, 0) # Non-neoplastic polyp
-}
-
-def mask_to_rgb(mask, color_mapping):
-    output = np.zeros((mask.shape[0], mask.shape[1], 3))
-    for key in color_mapping.keys():
-        output[mask == key] = color_mapping[key]
-    
-    return np.uint8(output)
-
-# Transform for the test set
-transformer = A.Compose([
-    A.Normalize(),
+# Transformation
+val_transform = A.Compose([
+    A.Resize(256, 256),
+    A.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
     ToTensorV2(),
 ])
 
+# Color dictionary for visualization
+color_dict = {0: (0, 0, 0), 1: (255, 0, 0), 2: (0, 255, 0)}
 
-# Evaluation the test set
-model.eval()
+# Function to map mask to RGB colors
+def mask_to_rgb(mask, color_dict):
+    output = np.zeros((mask.shape[0], mask.shape[1], 3), dtype=np.uint8)
+    for k, color in color_dict.items():
+        output[mask == k] = color
+    return output
 
-test_dir = '/kaggle/input/bkai-igh-neopolyp/test/test'
+# Create output directory
+os.makedirs(args.output_dir, exist_ok=True)
 
-for idx, img_name in enumerate(os.listdir(test_dir)):
-    print(f'Predicted {idx+1}/200 ...\r', end = '')
-    test_img_path = os.path.join(test_dir, img_name)
-    
-    img = cv2.imread(test_img_path)
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    
-    width, height = img.shape[1], img.shape[0]
-    
-    # Resize the image to 256x256
-    img = cv2.resize(img, (256, 256))
-    
-    # Transform the image
-    transformed_img = transformer(image=img)['image'].unsqueeze(0).to(device)
-    
-    with torch.no_grad():
-        out_mask = model.forward(transformed_img).squeeze(0).cpu().numpy().transpose(1, 2, 0) # (256, 256, 3)
-        
-    # Resize the mask to the original size
-    out_mask = cv2.resize(out_mask, (width, height))
-    out_mask = np.argmax(out_mask, axis=2)
-    
-    # Convert the mask to RGB
-    rgb_mask = mask_to_rgb(out_mask, color_mapping)
-    rgb_mask = cv2.cvtColor(rgb_mask, cv2.COLOR_RGB2BGR)
-    
-    # Save the mask
-    save_dir = '/kaggle/working/predict_mask'
-    os.makedirs(save_dir, exist_ok=True)
-    save_path = os.path.join(save_dir, img_name)
-    cv2.imwrite(save_path, rgb_mask)
+# Load and preprocess image
+if not os.path.exists(args.image_path):
+    raise FileNotFoundError(f"Image path '{args.image_path}' does not exist.")
+ori_img = cv2.imread(args.image_path)
+if ori_img is None:
+    raise ValueError(f"Failed to read the image at '{args.image_path}'.")
+ori_img = cv2.cvtColor(ori_img, cv2.COLOR_BGR2RGB)
+ori_h, ori_w = ori_img.shape[:2]
 
-# Convert the mask to string for submission
-result = mask2string('/kaggle/working/predict_mask')
+# Transform and inference
+img = cv2.resize(ori_img, (256, 256))
+transformed = val_transform(image=img)
+input_img = transformed["image"].unsqueeze(0).to(device)
 
-df = pd.DataFrame(result, columns = ['Id', 'Expected'])
-df['Id'] = result['idx']
-df['Expected'] = result['result_str']
-df.to_csv('/kaggle/working/quan_submission.csv', index=False)
+with torch.no_grad():
+    output_mask = model(input_img).squeeze(0).cpu().numpy().transpose(1, 2, 0)
 
-print('--- Finish ---')
+# Post-process output
+mask = cv2.resize(output_mask, (ori_w, ori_h))
+mask = np.argmax(mask, axis=2)
+mask_rgb = mask_to_rgb(mask, color_dict)
 
-    
+# Save segmented image
+output_path = os.path.join(args.output_dir, "segmented_image_color.png")
+mask_rgb_bgr = cv2.cvtColor(mask_rgb, cv2.COLOR_RGB2BGR)
+cv2.imwrite(output_path, mask_rgb_bgr)
 
-    
+print(f"Segmented image saved at {output_path}")
