@@ -8,23 +8,24 @@ Inferencing guideline
 
 Step 1: 
 
-git clone <your_repo_url>
+git clone https://github.com/Dinhhoanghm/BKAI-IGH-NeoPolyp-.git
 
-cd <your_repo_name>
+cd BKAI-IGH-NeoPolyp-
 
-Step 2: we need to download the "model.pth" from Google Drive 
+Step 2: We need to download the "model3.pth" from Google Drive 
 
-https://drive.google.com/uc?id=11X5lrZV2QAklZ6n9ReQUmb2yyE_eQCuT&export=download&confirm=t&uuid=501d3c0c-6f65-438c-9857-3a70f62ef5b4'
+https://drive.google.com/file/d/1sVGM04BydaGmr1Ybro8UnWhMLVqiZ2sY/view?usp=sharing
+
+Put it in the project
 
 
+Step 3: Install require libraries
+
+pip install -r requirements.txt
+
+Step 4: Run command
+
+python3 infer.py --image_path <path to image.jpeg> --checkpoint model3.pth --output_dir result
 
 
-Inferring
-
-!git clone https://github.com/2uanDM/unet-semantic-segmentation.git
-
-!cp /kaggle/working/model.pth /kaggle/working/unet-semantic-segmentation/
-
-!pip install -q segmentation_models_pytorch
-
-!python /kaggle/working/unet-semantic-segmentation/infer.py
+(Please check the model is name correct after download. Or you can past the path to the downloaded model)
