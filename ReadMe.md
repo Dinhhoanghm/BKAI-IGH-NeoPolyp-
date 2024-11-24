@@ -16,7 +16,7 @@ Step 2: We need to download the "model3.pth" from Google Drive
 
 https://drive.google.com/file/d/1sVGM04BydaGmr1Ybro8UnWhMLVqiZ2sY/view?usp=sharing
 
-Put it in the project
+Put it in the project root folder
 
 
 Step 3: Install require libraries
