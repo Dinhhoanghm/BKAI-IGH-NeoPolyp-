@@ -25,7 +25,7 @@ pip install -r requirements.txt
 
 Step 4: Run command
 
-python3 infer.py --image_path <path to image.jpeg> --checkpoint model3.pth --output_dir result
+python3 infer.py --image_path  < path to image.jpeg > --checkpoint < path to model3.pth > --output_dir < path to your output> 
 
 
 (Please check the model is name correct after download. Or you can past the path to the downloaded model)
